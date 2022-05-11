@@ -715,14 +715,15 @@ def _add_decoding_opts(parser):
               nargs='+', type=str, default=[],
               help="Ignore these strings when blocking repeats. "
                    "You want to block sentence delimiters.")
-    group.add('--replace_unk', '-replace_unk', action="store_true",
-              help="Replace the generated UNK tokens with the "
+    group.add('--replace_unk', '-replace_unk', choices=["att", "copy"], default="copy",
+              help="If 'att', then replace the generated UNK tokens with the "
                    "source token that had highest attention weight. If "
                    "phrase_table is provided, it will look up the "
                    "identified source token and give the corresponding "
                    "target token. If it is not provided (or the identified "
                    "source token does not exist in the table), then it "
-                   "will copy the source token.")
+                   "will copy the source token. If 'copy', it will try to copy source unk"
+                   "tokens in order.")
     group.add('--ban_unk_token', '-ban_unk_token',
               action="store_true",
               help="Prevent unk token generation by setting unk proba to 0")

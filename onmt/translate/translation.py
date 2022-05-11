@@ -41,6 +41,8 @@ class TranslationBuilder(object):
 
     def _build_target_tokens(self, src, src_vocab, src_raw, pred, attn):
         tgt_field = dict(self.fields)["tgt"].base_field
+        src_field = dict(self.fields)["src"].base_field
+        
         vocab = tgt_field.vocab
         tokens = []
 
@@ -53,14 +55,28 @@ class TranslationBuilder(object):
                 tokens = tokens[:-1]
                 break
         if self.replace_unk and attn is not None and src is not None:
+            src_unks = []
+            src_vocab = src_field.vocab
+
+            for i, (src_token, src_id) in enumerate(zip(src_raw, src)):
+                if src_vocab.itos[src_id] == src_field.unk_token:
+                    src_unks.append((i, src_token))
+                    
+            seen_tgt_unks = 0
+            total_src_unks = len(src_unks)
             for i in range(len(tokens)):
                 if tokens[i] == tgt_field.unk_token:
-                    _, max_index = attn[i][:len(src_raw)].max(0)
-                    tokens[i] = src_raw[max_index.item()]
-                    if self.phrase_table_dict:
-                        src_tok = src_raw[max_index.item()]
-                        if src_tok in self.phrase_table_dict:
-                            tokens[i] = self.phrase_table_dict[src_tok]
+                    if self.replace_unk == "att":
+                        _, max_index = attn[i][:len(src_raw)].max(0)
+                        tokens[i] = src_raw[max_index.item()]
+                        if self.phrase_table_dict:
+                            src_tok = src_raw[max_index.item()]
+                            if src_tok in self.phrase_table_dict:
+                                tokens[i] = self.phrase_table_dict[src_tok]
+                    elif self.replace_unk == "copy":
+                        if seen_tgt_unks < total_src_unks:
+                            tokens[i] = src_unks[seen_tgt_unks][1]
+                        seen_tgt_unks += 1
         return tokens
 
     def from_batch(self, translation_batch):
