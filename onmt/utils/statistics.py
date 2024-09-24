@@ -2,6 +2,8 @@
 import time
 import math
 import sys
+import wandb
+
 
 from onmt.utils.logging import logger
 
@@ -121,8 +123,9 @@ class Statistics(object):
                self.xent(),
                learning_rate,
                self.n_src_words / (t + 1e-5),
-               self.n_words / (t + 1e-5),
+               selfclog_tensorboard.n_words / (t + 1e-5),
                time.time() - start))
+        self.log_wandb("train", learning_rate, None, step)
         sys.stdout.flush()
 
     def log_tensorboard(self, prefix, writer, learning_rate, patience, step):
@@ -135,3 +138,19 @@ class Statistics(object):
         writer.add_scalar(prefix + "/lr", learning_rate, step)
         if patience is not None:
             writer.add_scalar(prefix + "/patience", patience, step)
+
+    def log_wandb(self, prefix, learning_rate, patience, step):
+        """ Log statistics to Weights and Biases """
+        t = self.elapsed_time()
+        wandb.log({
+        prefix + "/xent": self.xent(),
+        prefix + "/ppl": self.ppl(),
+        prefix + "/accuracy": self.accuracy(),
+        prefix + "/tgtper": self.n_words / t,
+        prefix + "/lr": learning_rate,
+        prefix + "/step": step,
+         })
+
+        if patience is not None:
+           wandb.log({prefix + "/patience": patience})
+
