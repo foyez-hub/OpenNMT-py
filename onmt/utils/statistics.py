@@ -3,7 +3,6 @@ import time
 import math
 import sys
 import wandb
-
 from onmt.utils.logging import logger
 
 
@@ -27,15 +26,15 @@ class Statistics(object):
     @staticmethod
     def all_gather_stats(stat, max_size=4096):
         """
-        Gather a `Statistics` object across multiple process/nodes
+        Gather a `Statistics` object accross multiple process/nodes
 
         Args:
             stat(:obj:Statistics): the statistics object to gather
-                across all processes/nodes
+                accross all processes/nodes
             max_size(int): max buffer size to use
 
         Returns:
-            `Statistics`, the updated stats object
+            `Statistics`, the update stats object
         """
         stats = Statistics.all_gather_stats_list([stat], max_size=max_size)
         return stats[0]
@@ -43,11 +42,11 @@ class Statistics(object):
     @staticmethod
     def all_gather_stats_list(stat_list, max_size=4096):
         """
-        Gather a `Statistics` list across all processes/nodes
+        Gather a `Statistics` list accross all processes/nodes
 
         Args:
             stat_list(list([`Statistics`])): list of statistics objects to
-                gather across all processes/nodes
+                gather accross all processes/nodes
             max_size(int): max buffer size to use
 
         Returns:
@@ -70,12 +69,13 @@ class Statistics(object):
 
     def update(self, stat, update_n_src_words=False):
         """
-        Update statistics by summing values with another `Statistics` object
+        Update statistics by suming values with another `Statistics` object
 
         Args:
             stat: another statistic object
             update_n_src_words(bool): whether to update (sum) `n_src_words`
                 or not
+
         """
         self.loss += stat.loss
         self.n_words += stat.n_words
@@ -122,19 +122,18 @@ class Statistics(object):
                learning_rate,
                self.n_src_words / (t + 1e-5),
                self.n_words / (t + 1e-5),
-               time.time() - start,
-              )
-            + "".join(
-                [
-                    " {}: {}".format(k, round(v, 2))
-                    for k, v in self.computed_metrics.items()
-                ]
-            )
-        )
-        
+               time.time() - start))
         sys.stdout.flush()
-        self.log_wandb("train", learning_rate, None, step)
-        
+        wandb.log({
+              "step": step_fmt,
+              "accuracy": self.accuracy(),
+              "perplexity": self.ppl(),
+              "cross_entropy": self.xent(),
+              "learning_rate": learning_rate,
+              "source_words_per_sec": self.n_src_words / (t + 1e-5),
+              "words_per_sec": self.n_words / (t + 1e-5),
+              "elapsed_time_sec": time.time() - start
+          })
 
     def log_tensorboard(self, prefix, writer, learning_rate, patience, step):
         """ display statistics to tensorboard """
@@ -146,18 +145,3 @@ class Statistics(object):
         writer.add_scalar(prefix + "/lr", learning_rate, step)
         if patience is not None:
             writer.add_scalar(prefix + "/patience", patience, step)
-
-    def log_wandb(self, prefix, learning_rate, patience, step):
-        """ Log statistics to Weights and Biases """
-        t = self.elapsed_time()
-        wandb.log({
-            prefix + "/xent": self.xent(),
-            prefix + "/ppl": self.ppl(),
-            prefix + "/accuracy": self.accuracy(),
-            prefix + "/tgtper": self.n_words / t,
-            prefix + "/lr": learning_rate,
-            prefix + "/step": step,
-        })
-
-        if patience is not None:
-            wandb.log({prefix + "/patience": patience})
