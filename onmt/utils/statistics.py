@@ -125,7 +125,8 @@ class Statistics(object):
                time.time() - start))
         sys.stdout.flush()
         wandb.log({
-              "step": step_fmt,
+              "step": step,
+              "num_steps":num_steps,
               "accuracy": self.accuracy(),
               "perplexity": self.ppl(),
               "cross_entropy": self.xent(),
