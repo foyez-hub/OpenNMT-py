@@ -14,6 +14,7 @@ import traceback
 
 import onmt.utils
 from onmt.utils.logging import logger
+import wandb
 
 
 def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
