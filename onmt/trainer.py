@@ -285,7 +285,7 @@ class Trainer(object):
 
             if (self.model_saver is not None
                     and (save_checkpoint_steps != 0
-                         and step % save_checkpoint_steps == 0))
+                         and step % save_checkpoint_steps == 0)):
                 self.model_saver.save(step, moving_average=self.moving_average)
                 # wandb checkpoint saving
                 # checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_step_{step}.pt")
