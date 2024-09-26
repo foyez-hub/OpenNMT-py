@@ -108,6 +108,15 @@ class Trainer(object):
                  report_manager=None, with_align=False, model_saver=None,
                  average_decay=0, average_every=1, model_dtype='fp32',
                  earlystopper=None, dropout=[0.3], dropout_steps=[0]):
+
+
+        wandb.init(project="bangla", config=opt)
+        
+        # Save the model path where checkpoints will be stored
+        # self.checkpoint_dir = "./checkpoints"
+        # if not os.path.exists(self.checkpoint_dir):
+        #     os.makedirs(self.checkpoint_dir)   
+            
         # Basic attributes.
         self.model = model
         self.train_loss = train_loss
@@ -275,9 +284,17 @@ class Trainer(object):
 
             if (self.model_saver is not None
                     and (save_checkpoint_steps != 0
-                         and step % save_checkpoint_steps == 0)):
+                         and step % save_checkpoint_steps == 0))
                 self.model_saver.save(step, moving_average=self.moving_average)
+                # wandb checkpoint saving
+                # checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_step_{step}.pt")
+                # self.save_checkpoint(checkpoint_path)
+                # artifact = wandb.Artifact(f'model-step-{step}', type='model')
+                # artifact.add_file(checkpoint_path)
+                # wandb.log_artifact(artifact)
 
+
+                            
             if train_steps > 0 and step >= train_steps:
                 break
 
