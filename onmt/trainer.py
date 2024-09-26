@@ -32,6 +32,47 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
             used to save the model
     """
 
+
+
+    wandb.init(
+    project="FineTune_BanglaT5", 
+    config={
+    "train_path_src": opt.data['train']['path_src'],
+    "train_path_tgt": opt.data['train']['path_tgt'],
+    "valid_path_src": opt.data['valid']['path_src'],
+    "valid_path_tgt": opt.data['valid']['path_tgt'],
+    "encoder_type": opt.encoder_type,
+    "decoder_type": opt.decoder_type,
+    "layers": opt.layers,
+    "heads": opt.heads,
+    "transformer_ff": opt.transformer_ff,
+    "global_attention": opt.global_attention,
+    "self_attn_type": opt.self_attn_type,
+    "batch_size": opt.batch_size,
+    "valid_batch_size": opt.valid_batch_size,
+    "train_steps": opt.train_steps,
+    "valid_steps": opt.valid_steps,
+    "optim": opt.optim,
+    "learning_rate": opt.learning_rate,
+    "adam_beta1": opt.adam_beta1,
+    "adam_beta2": opt.adam_beta2,
+    "dropout": opt.dropout[0],  
+    "attention_dropout": opt.attention_dropout[0],  
+    "save_model": opt.save_model,
+    "save_checkpoint_steps": opt.save_checkpoint_steps,
+    "tensorboard_log_dir": opt.tensorboard_log_dir,
+    "gpu_ranks": opt.gpu_ranks,
+    "src_vocab": opt.src_vocab,
+    "tgt_vocab": opt.tgt_vocab,
+    "share_decoder_embeddings": opt.share_decoder_embeddings,
+    "seed": opt.seed,
+       }
+     )
+
+
+    
+
+
     tgt_field = dict(fields)["tgt"].base_field
     train_loss = onmt.utils.loss.build_loss_compute(model, tgt_field, opt)
     valid_loss = onmt.utils.loss.build_loss_compute(
@@ -111,7 +152,6 @@ class Trainer(object):
                  earlystopper=None, dropout=[0.3], dropout_steps=[0]):
 
 
-        wandb.init(project="bangla", config=opt)
         
         # Save the model path where checkpoints will be stored
         # self.checkpoint_dir = "./checkpoints"
