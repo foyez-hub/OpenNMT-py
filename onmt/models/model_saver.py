@@ -1,6 +1,6 @@
 import os
 import torch
-
+import wandb
 from collections import deque
 from onmt.utils.logging import logger
 
@@ -143,6 +143,14 @@ class ModelSaver(ModelSaverBase):
         logger.info("Saving checkpoint %s_step_%d.pt" % (self.base_path, step))
         checkpoint_path = '%s_step_%d.pt' % (self.base_path, step)
         torch.save(checkpoint, checkpoint_path)
+
+                # Log the checkpoint to wandb
+        artifact = wandb.Artifact(f'model_step_{step}', type='model')
+        artifact.add_file(checkpoint_path)
+        wandb.log_artifact(artifact)
+        
+        logger.info("Checkpoint logged to wandb: %s" % checkpoint_path)
+
         return checkpoint, checkpoint_path
 
     def _rm_checkpoint(self, name):
