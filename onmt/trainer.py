@@ -15,7 +15,8 @@ import traceback
 import onmt.utils
 from onmt.utils.logging import logger
 import wandb
-
+import time
+from tqdm import tqdm  
 
 def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
     """
@@ -35,7 +36,7 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
 
 
     wandb.init(
-    project="FineTune_BanglaT5", 
+    project="BanglaT5 training", 
     config={
     "train_path_src": opt.data['train']['path_src'],
     "train_path_tgt": opt.data['train']['path_tgt'],
@@ -270,6 +271,8 @@ class Trainer(object):
         total_stats = onmt.utils.Statistics()
         report_stats = onmt.utils.Statistics()
         self._start_report_manager(start_time=total_stats.start_time)
+        start_time = time.time()
+        pbar = tqdm(total=train_steps, desc="Training", unit="step")
 
         for i, (batches, normalization) in enumerate(
                 self._accum_batches(train_iter)):
@@ -327,20 +330,41 @@ class Trainer(object):
                     and (save_checkpoint_steps != 0
                          and step % save_checkpoint_steps == 0)):
                 self.model_saver.save(step, moving_average=self.moving_average)
-                # wandb checkpoint saving
-                # checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_step_{step}.pt")
-                # self.save_checkpoint(checkpoint_path)
-                # artifact = wandb.Artifact(f'model-step-{step}', type='model')
-                # artifact.add_file(checkpoint_path)
-                # wandb.log_artifact(artifact)
 
+           
+            elapsed_time = time.time() - start_time
+            steps_completed = step + 1
+            steps_remaining = train_steps - steps_completed
+            time_per_step = elapsed_time / steps_completed
+            estimated_remaining_time = steps_remaining * time_per_step
 
+            # Convert remaining time to hours, minutes, and seconds
+            hours, rem = divmod(estimated_remaining_time, 3600)
+            minutes, seconds = divmod(rem, 60)
+
+            pbar.set_postfix({
+             'remaining_time': f"{int(hours)}h {int(minutes)}m {int(seconds)}s",
+             'step': steps_completed
+                 })
+
+            pbar.update(1)
+
+            # Log remaining time
+            # logger.info(f"Step {steps_completed}/{train_steps}, estimated time remaining: {int(hours)}h {int(minutes)}m {int(seconds)}s")
+            wandb.log({
+            "remaining_time_hours": hours,
+            "remaining_time_minutes": minutes,
+            "remaining_time_seconds": seconds,
+               })
+ 
                             
             if train_steps > 0 and step >= train_steps:
+                pbar.close()
                 break
-
+        
         if self.model_saver is not None:
             self.model_saver.save(step, moving_average=self.moving_average)
+        wandb.finish()    
         return total_stats
 
     def validate(self, valid_iter, moving_average=None):
