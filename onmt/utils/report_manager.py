@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 
 import onmt
+import wandb
 
 from onmt.utils.logging import logger
 
@@ -157,6 +158,10 @@ class ReportMgr(ReportMgrBase):
         if valid_stats is not None:
             self.log('Validation perplexity: %g' % valid_stats.ppl())
             self.log('Validation accuracy: %g' % valid_stats.accuracy())
+            wandb.log({
+              'Validation Perplexity': valid_stats.ppl(),
+              'Validation Accuracy': valid_stats.accuracy()
+               })
 
             self.maybe_log_tensorboard(valid_stats,
                                        "valid",
