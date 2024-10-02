@@ -159,8 +159,8 @@ class ReportMgr(ReportMgrBase):
             self.log('Validation perplexity: %g' % valid_stats.ppl())
             self.log('Validation accuracy: %g' % valid_stats.accuracy())
             wandb.log({
-              'Validation Perplexity': valid_stats.ppl(),
-              'Validation Accuracy': valid_stats.accuracy()
+              "Validation Perplexity": valid_stats.ppl(),
+              "Validation Accuracy": valid_stats.accuracy()
                })
 
             self.maybe_log_tensorboard(valid_stats,
