@@ -16,7 +16,6 @@ import onmt.utils
 from onmt.utils.logging import logger
 import wandb
 import time
-from tqdm import tqdm  
 
 def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
     """
@@ -342,20 +341,8 @@ class Trainer(object):
             hours, rem = divmod(estimated_remaining_time, 3600)
             minutes, seconds = divmod(rem, 60)
 
-            pbar.set_postfix({
-             'remaining_time': f"{int(hours)}h {int(minutes)}m {int(seconds)}s",
-             'step': steps_completed
-                 })
 
-            pbar.update(1)
 
-            # Log remaining time
-            # logger.info(f"Step {steps_completed}/{train_steps}, estimated time remaining: {int(hours)}h {int(minutes)}m {int(seconds)}s")
-            wandb.log({
-            "remaining_time_hours": hours,
-            "remaining_time_minutes": minutes,
-            "remaining_time_seconds": seconds,
-               })
  
                             
             if train_steps > 0 and step >= train_steps:
