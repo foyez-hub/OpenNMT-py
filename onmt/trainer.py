@@ -271,7 +271,6 @@ class Trainer(object):
         report_stats = onmt.utils.Statistics()
         self._start_report_manager(start_time=total_stats.start_time)
         start_time = time.time()
-        pbar = tqdm(total=train_steps, desc="Training", unit="step")
 
         for i, (batches, normalization) in enumerate(
                 self._accum_batches(train_iter)):
